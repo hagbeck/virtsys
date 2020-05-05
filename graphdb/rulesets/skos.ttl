@@ -1,0 +1,33 @@
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+
+<http://www.w3.org/2004/02/skos/core> a owl:Ontology ;
+  dct:title "SKOS Vocabulary as a ruleset for a GraphDB for the project \"Virtuelle Systematik\""@en ;
+  dct:title "SKOS Vokabular als Regelset für die GraphDB für das Projekt \"Virtuelle Systematik\""@de ;
+	dct:description "This is a ruleset for GraphDB in the sense of http://graphdb.ontotext.com/documentation/free/rules-optimisations.html."@en ;
+	dct:description "Es handelt sich hier um ein Regelset für eine GraphDB im Sinne von http://graphdb.ontotext.com/documentation/free/rules-optimisations.html."@de ;
+	dct:creator "Hans-Georg Becker <https://orcid.org/0000-0003-0432-294X>, University Library Dortmund <data.ub@tu-dortmund.de>" ;
+	rdfs:seeAlso <http://www.w3.org/TR/skos-reference/> .
+
+skos:broader rdfs:label "has broader"@en ;
+	rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+	skos:definition "Relates a concept to a concept that is more general in meaning."@en ;
+	rdfs:comment "Broader concepts are typically rendered as parents in a concept hierarchy (tree)."@en ;
+	skos:scopeNote "By convention, skos:broader is only used to assert an immediate (i.e. direct) hierarchical link between two conceptual resources."@en ;
+	a owl:ObjectProperty ;
+	a owl:TransitiveProperty ;
+	owl:inverseOf skos:narrower ;
+	a rdf:Property .
+
+skos:narrower rdfs:label "has narrower"@en ;
+	rdfs:isDefinedBy <http://www.w3.org/2004/02/skos/core> ;
+	skos:definition "Relates a concept to a concept that is more specific in meaning."@en ;
+	skos:scopeNote "By convention, skos:broader is only used to assert an immediate (i.e. direct) hierarchical link between two conceptual resources."@en ;
+	rdfs:comment "Narrower concepts are typically rendered as children in a concept hierarchy (tree)."@en ;
+	a owl:ObjectProperty ;
+	a owl:TransitiveProperty ;
+	owl:inverseOf skos:broader ;
+	a rdf:Property .

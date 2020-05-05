@@ -1,0 +1,61 @@
+PREFIX :<http://www.ontotext.com/connectors/lucene#>
+PREFIX inst:<http://www.ontotext.com/connectors/lucene/instance#>
+INSERT DATA {
+	inst:shelfmarks :createConnector '''
+{
+  "fields": [
+	{
+		"fieldName": "manifestation_id/1",
+		"propertyChain": [
+			"http://erlangen-crm.org/efrbroo/R7_is_example_of",
+			"http://purl.org/dc/terms/identifier"
+		],
+		"indexed": true,
+		"stored": true,
+		"analyzed": true,
+		"multivalued": true,
+		"facet": false
+	},
+	{
+		"fieldName": "manifestation_id/2",
+		"propertyChain": [
+			"http://purl.org/dc/terms/relation",
+			"http://purl.org/dc/terms/identifier"
+		],
+		"indexed": true,
+		"stored": true,
+		"analyzed": true,
+		"multivalued": true,
+		"facet": false
+	},
+    {
+      "fieldName": "item_id",
+      "propertyChain": [
+        "http://purl.org/dc/terms/identifier"
+      ],
+      "indexed": true,
+      "stored": true,
+      "analyzed": true,
+      "multivalued": true,
+      "facet": false
+    },
+    {
+      "fieldName": "shelfmark",
+      "propertyChain": [
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#value"
+      ],
+      "indexed": true,
+      "stored": true,
+      "analyzed": true,
+      "multivalued": true,
+      "facet": false
+    }
+  ],
+  "types": [
+    "http://erlangen-crm.org/efrbroo/F5_Item",
+		"http://erlangen-crm.org/current/E78_Curated_Holding"
+  ],
+  "stripMarkup": true
+}
+''' .
+}

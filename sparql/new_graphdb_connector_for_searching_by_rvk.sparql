@@ -1,0 +1,53 @@
+PREFIX :<http://www.ontotext.com/connectors/lucene#>
+PREFIX inst:<http://www.ontotext.com/connectors/lucene/instance#>
+INSERT DATA {
+	inst:rvk :createConnector '''
+{
+  "fields": [
+  	{
+  		"fieldName": "catalog",
+  		"propertyChain": [
+  			"http://purl.org/dc/terms/isReferencedBy"
+  		],
+  		"indexed": true,
+  		"stored": true,
+  		"analyzed": true,
+  		"multivalued": true,
+  		"facet": false
+  	},
+    {
+      "fieldName": "rvk_notation/1",
+      "propertyChain": [
+        "http://purl.org/net/bundle#encapsulated_in",
+        "http://purl.org/dc/terms/subject",
+        "http://www.w3.org/2004/02/skos/core#notation"
+      ],
+      "indexed": true,
+      "stored": true,
+      "analyzed": false,
+      "multivalued": true,
+      "facet": false
+    },
+    {
+      "fieldName": "rvk_notation/2",
+      "propertyChain": [
+      "http://purl.org/net/bundle#encapsulated_in",
+      "http://purl.org/dc/terms/subject",
+      "http://www.w3.org/2004/02/skos/core#broader",
+      "http://www.w3.org/2004/02/skos/core#notation"
+      ],
+      "indexed": true,
+      "stored": true,
+      "analyzed": false,
+      "multivalued": true,
+      "facet": false
+    }
+  ],
+  "types": [
+    "http://erlangen-crm.org/efrbroo/F3_Manifestation_Product_Type"
+  ],
+	"entityFilter": "?catalog <http://purl.org/dc/terms/isReferencedBy> in (<https://www.ub.tu-dortmund.de/katalog>)",
+  "stripMarkup": true
+}
+''' .
+}

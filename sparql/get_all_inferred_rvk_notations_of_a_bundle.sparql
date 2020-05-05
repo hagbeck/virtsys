@@ -1,0 +1,19 @@
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX rvko: <http://data.ub.tu-dortmund.de/resource/rvko/>
+PREFIX dct: <http://purl.org/dc/terms/>
+
+select distinct ?subject where {
+    {
+        select * where {
+        <http://data.ub.tu-dortmund.de/resource/cg/wrk_bundle/14469091> dct:subject ?subject .
+        }
+    }
+    union {
+        select * where {
+            <http://data.ub.tu-dortmund.de/resource/cg/wrk_bundle/14469091> dct:subject ?rvk .
+            ?rvk skos:broader ?subject .
+        }
+    }
+}
+order by ?subject
+limit 100

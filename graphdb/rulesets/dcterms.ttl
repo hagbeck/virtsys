@@ -1,0 +1,34 @@
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix dcam: <http://purl.org/dc/dcam/> .
+@prefix dct: <http://purl.org/dc/terms/> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+
+<http://purl.org/dc/terms/> a owl:Ontology ;
+  dct:title "Parts of DC Terms as a ruleset for a GraphDB for the project \"Virtuelle Systematik\""@en ;
+  dct:title "Teile der DC Terms als Regelset für die GraphDB für das Projekt \"Virtuelle Systematik\""@de ;
+  dct:description "This is a ruleset for GraphDB in the sense of http://graphdb.ontotext.com/documentation/free/rules-optimisations.html."@en ;
+  dct:description "Es handelt sich hier um ein Regelset für eine GraphDB im Sinne von http://graphdb.ontotext.com/documentation/free/rules-optimisations.html."@de ;
+  dct:creator "Hans-Georg Becker <https://orcid.org/0000-0003-0432-294X>, University Library Dortmund <data.ub@tu-dortmund.de>" ;
+  rdfs:seeAlso <http://purl.org/dc/terms/> .
+
+dct:hasPart
+    a rdf:Property ;
+    a owl:ObjectProperty ;
+    a owl:TransitiveProperty ;
+    owl:inverseOf dcterms:isPartOf ;
+    rdfs:comment "A related resource that is included either physically or logically in the described resource."@en ;
+    rdfs:isDefinedBy <http://purl.org/dc/terms/> ;
+    rdfs:label "Has Part"@en ;
+    skos:note "This term is intended to be used with non-literal values as defined in the DCMI Abstract Model (http://dublincore.org/documents/abstract-model/).  As of December 2007, the DCMI Usage Board is seeking a way to express this intention with a formal range declaration."@en .
+
+dct:isPartOf
+    a rdf:Property ;
+    a owl:ObjectProperty ;
+    a owl:TransitiveProperty ;
+    owl:inverseOf dcterms:hasPart ;
+    rdfs:comment "A related resource in which the described resource is physically or logically included."@en ;
+    rdfs:isDefinedBy <http://purl.org/dc/terms/> ;
+    rdfs:label "Is Part Of"@en ;
+    skos:note "This term is intended to be used with non-literal values as defined in the DCMI Abstract Model (http://dublincore.org/documents/abstract-model/).  As of December 2007, the DCMI Usage Board is seeking a way to express this intention with a formal range declaration."@en .

@@ -1,0 +1,58 @@
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX bundle: <http://purl.org/net/bundle#>
+PREFIX efrbroo: <http://erlangen-crm.org/efrbroo/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+
+SELECT DISTINCT ?shelfmark WHERE {
+    {
+        SELECT ?shelfmark WHERE {
+            <http://lobid.org/resources/%s> efrbroo:R7i_has_example ?item .
+            ?item dct:title ?shelfmark .
+        }
+    }
+    UNION
+    {
+        SELECT ?shelfmark WHERE {
+            <http://lobid.org/resources/%s> efrbroo:R7i_has_example ?item .
+            ?item ?alternate_label ?shelfmark .
+    		FILTER (?alternate_label IN (dct:alternate, dct:alternative) )
+        }
+    }
+    UNION
+    {
+        SELECT ?shelfmark WHERE {
+            <http://lobid.org/resources/%s> efrbroo:R7i_has_example ?item .
+            ?item rdf:value ?shelfmark .
+        }
+    }
+    UNION
+    {
+        SELECT ?shelfmark WHERE {
+            ?collection dct:relation <http://lobid.org/resources/%s> .
+            ?collection ?identifier ?shelfmark .
+            FILTER (?identifier IN (dct:identifer, dct:identifier) )
+            <http://lobid.org/resources/%s> dct:type ?type .
+            FILTER (regex(str(?type), "p", "i") || regex(str(?type), "z", "i"))
+        }
+    }
+    UNION
+    {
+        SELECT ?shelfmark WHERE {
+            ?collection dct:relation <http://lobid.org/resources/%s> .
+            ?collection ?alternate_label ?shelfmark .
+    		FILTER (?alternate_label IN (dct:alternate, dct:alternative) )
+            <http://lobid.org/resources/%s> dct:type ?type .
+            FILTER (regex(str(?type), "p", "i") || regex(str(?type), "z", "i"))
+        }
+    }
+    UNION
+    {
+        SELECT ?shelfmark WHERE {
+            ?collection dct:relation <http://lobid.org/resources/%s> .
+            ?collection rdf:value ?shelfmark .
+            <http://lobid.org/resources/%s> dct:type ?type .
+            FILTER (regex(str(?type), "p", "i") || regex(str(?type), "z", "i"))
+        }
+    }
+}

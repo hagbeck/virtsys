@@ -1,0 +1,12 @@
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX bundle: <http://purl.org/net/bundle#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX efrbroo: <http://erlangen-crm.org/efrbroo/>
+SELECT DISTINCT ?shelfmark ?item ?manifestation ?bundle ?notation
+WHERE {
+    ?item dct:title ?shelfmark .
+    ?item efrbroo:R7_is_example_of ?manifestation .
+    OPTIONAL { ?bundle bundle:encapsulates ?manifestation .  ?bundle dct:subject ?rvk .  ?rvk skos:notation ?notation . }
+    FILTER(regex(str(?shelfmark), "^A 123", "i"))
+}
