@@ -1,0 +1,19 @@
+before_script:
+  # the following script is taken from https://docs.gitlab.com/ee/ci/ssh_keys/README.html
+  - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+  - eval $(ssh-agent -s)
+  - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add - > /dev/null
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+deploy:
+  stage: deploy
+  only:
+    - master
+  script:
+    - echo "$CONFIG_CG" > ./config_cg.py
+    - echo "$CONFIG_GRAPHDB" > ./config_graphdb.py
+    - echo "$CONFIG_MAILER" > ./config_mailer.py
+    - echo "$CONFIG_RVK" > ./config_rvk.py
+    - echo "$CONFIG_UBDO" > ./config_ubdo.py
+    - scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -r ./** $USERNAME@$HOST:/home/data/test/virtsys/
+    - ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null $USERNAME@$HOST "cd /home/data/test/virtsys/ && python3 -m venv venv && source venv/bin/activate && pip install -U pip && pip install -r requirements.txt"

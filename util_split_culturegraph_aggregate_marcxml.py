@@ -25,7 +25,7 @@ from os.path import isfile, join
 import timeit
 
 input_dir = '/export/virtuelle_systematik/data/culture_graph/aggregate_marcxml/'
-input_file = 'aggregate.marcxml'
+input_file = 'aggregate_20231207.marcxml'
 
 output_dir = '/export/virtuelle_systematik/data/culture_graph/aggregate_marcxml/splitted/'
 output_file = 'aggregate.%s.marcxml'
