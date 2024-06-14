@@ -40,6 +40,7 @@ from urllib3 import Retry
 
 from util_cleanup import cleanup_dir
 from util_sparql_client import sparql_query
+from util_mailer import mailer
 
 import config_ubdo as config
 
@@ -89,6 +90,7 @@ def get_data(record_ids=None):
         record_ids = []
 
     cnt_rvk = 0
+    cnt_records_with_rvk = 0
     hbz_more_than_50_rvk = 0
 
     if record_ids:
@@ -113,6 +115,7 @@ def get_data(record_ids=None):
                             all_rvk_notations = response['response']['docs'][0]['rvk_notations']
 
                             if all_rvk_notations:
+                                cnt_records_with_rvk += 1
                                 solr_record['rvk_notations'] = []
 
                                 for item in all_rvk_notations:
@@ -164,53 +167,49 @@ def get_data(record_ids=None):
                 thedata.write(json.dumps(solr_record))
                 thedata.write('\n')
 
-    return cnt_rvk, hbz_more_than_50_rvk
+    return cnt_rvk, cnt_records_with_rvk, hbz_more_than_50_rvk
 
 
-def build_index_record(mode='update'):
+def build_index_record():
 
-    # TODO read hbz-IDs into list
+    # read hbz-IDs into list
     record_ids = []
-    with open('%s/unload.TIT' % config.SUNRISE_DATA_DIR, 'r') as title_data:
+    with open(config.FILE_WITH_HBZ_IDS, 'r') as file:
 
-        creation_date = ''
-        hbz_id = ''
-        for line in title_data:
-            if line.startswith('0002:'):
-                creation_date = line.strip().replace('0002:', '')
-            elif line.startswith('0010.001:'):
-                hbz_id = line.strip().replace('0010.001:', '')
-            elif line.startswith('9999:'):
-                if mode == 'update' and datetime.datetime.strptime(creation_date, '%d.%m.%Y') >= datetime.datetime.strptime((datetime.date.today() - datetime.timedelta(days=1)).strftime('%Y%m%d'), '%Y%m%d'):
-                    record_ids.append(hbz_id)
-                elif mode == 'full':
-                    record_ids.append(hbz_id)
-                creation_date = ''
-                hbz_id = ''
+        for line in file:
+            record_id = line.split('\t')[1].strip()
+            record_ids.append(record_id)
 
     number_of_pool_workers = 4
     number_of_partitions = 1000
 
-    print('%s record to enrich.' % len(record_ids))
+    message = '%s record to enrich.\n' % len(record_ids)
 
     # split record_ids into number_of_workers partitions
     partitions = [list(x) for x in divide(number_of_partitions, record_ids)]
 
     # init thread pool with a queue of partitions and get data for them from graphdb
     total_rvk_notation_counter = 0
+    total_records_with_rvk = 0
     with concurrent.futures.ProcessPoolExecutor(max_workers=number_of_pool_workers) as executor:
 
-        for rvk_notation_counter, hbz_more_than_50_rvk in executor.map(get_data, partitions):
+        for rvk_notation_counter, records_with_rvk, hbz_more_than_50_rvk in executor.map(get_data, partitions):
 
             total_rvk_notation_counter += rvk_notation_counter
-            print('%s notations; %s records with > 50 notations.' % (rvk_notation_counter, hbz_more_than_50_rvk))
+            total_records_with_rvk += records_with_rvk
+            #message += '%s notations; %s records with > 50 notations.\n' % (rvk_notation_counter, hbz_more_than_50_rvk)
 
-    print('ubdo_rvk_index.json ready.')
-    print('%s notations.' % total_rvk_notation_counter)
+    message += 'ubdo_rvk_index.json ready.\n'
+    message += '%s records with RVK notations.\n' % total_records_with_rvk
+    message += '%s notations.\n' % total_rvk_notation_counter
+    
+    return message
 
 
 def start_solrbulk(data_dir='', mode='update'):
     """ start indexing using solrbulk """
+
+    message = ''
 
     # index data using solrbulk
     solr_index_files = [f for f in listdir(data_dir) if isfile(join(data_dir, f))]
@@ -220,36 +219,50 @@ def start_solrbulk(data_dir='', mode='update'):
         # start solrbulk: https://github.com/miku/solrbulk
         # solrbulk -verbose -server https://localhost:7007/solr/biblio solr_add_data.json
         if mode != 'update' and idx == 1:
-            result = subprocess.run(["/usr/sbin/solrbulk", "-purge", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE)
+            message += subprocess.run(["/usr/sbin/solrbulk", "-purge", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE)
         else:
-            result = subprocess.run(["/usr/sbin/solrbulk", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE)
+            message += subprocess.run(["/usr/sbin/solrbulk", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE)
 
-        print(result)
-
+        message += '\n'
+        
         idx += 1
+        
+    return message
 
 
 if __name__ == '__main__':
 
     mode = 'full'
 
-    # cleanup
-    cleanup_dir(data_dir=config.SOLR_DATA_DIR)
+    try:
+        # cleanup
+        cleanup_dir(data_dir=config.SOLR_DATA_DIR)
 
-    # build data
-    start = timeit.default_timer()
+        # build data
+        start = timeit.default_timer()
 
-    build_index_record(mode=mode)
+        message = build_index_record()
 
-    stop = timeit.default_timer()
-    duration = stop - start
-    print('duration building RVK index data: %s' % duration) # TODO duration 9.846s -> ca. 2,7h
+        stop = timeit.default_timer()
+        duration = stop - start
+        message += 'duration building RVK index data: %s\n' % duration # TODO duration 9.846s -> ca. 2,7h
 
-    # index data
-    start = timeit.default_timer()
+        # index data
+        start = timeit.default_timer()
 
-    start_solrbulk(data_dir=config.SOLR_DATA_DIR, mode=mode)
+        message += start_solrbulk(data_dir=config.SOLR_DATA_DIR, mode=mode)
 
-    stop = timeit.default_timer()
-    duration = stop - start
-    print('duration indexing the data in solr: %s' % duration) # TODO duration 18 min
+        stop = timeit.default_timer()
+        duration = stop - start
+        message += 'duration indexing the data in solr: %s' % duration # TODO duration 18 min
+        report_status = 'successful'
+        
+    except Exception as e:
+        report_status = 'failed'
+        message = e
+        
+    mailer(
+        sender=config.TU_DORTMUND_SMTP['sender'],
+        receivers=config.TU_DORTMUND_SMTP['receivers'],
+        subject='Building RVK-Index for bibliographic hbz records: %s' % report_status,
+        message='%s' % message)
