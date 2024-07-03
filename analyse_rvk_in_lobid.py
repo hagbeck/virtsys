@@ -158,19 +158,30 @@ if __name__ == '__main__':
     print('Records with RVK by publication type: %s' % total_records_with_rvk_by_pubtype)
 
     print('---')
+    
+    with open('data/rvk_in_lobid.tsv', 'w') as f:
+        f.write('Number of records\t%d\n' % total_number_of_records)
+        f.write('Records with RVK\t%d\n' % total_records_with_rvk)
+        f.write('RVK notations for records\t%d\n' % total_rvk_notations_for_records)
+        
+        f.write('Records by publication year\t%s\n' % total_number_of_records_by_year)
+        f.write('Records with RVK by publication year\t%s\n' % total_records_with_rvk_by_year)
+        
+        f.write('Records by publication type\t%s\n' % total_number_of_records_by_pubtype)
+        f.write('Records with RVK by publication type\t%s\n' % total_records_with_rvk_by_pubtype)
 
     # get rvk notations for pubtype in percent
-    for pubtype in total_number_of_records_by_pubtype:
-        if pubtype in total_records_with_rvk_by_pubtype:
-            print('%s\t%s\t%s\t%f' % (pubtype, total_number_of_records_by_pubtype[pubtype], total_records_with_rvk_by_pubtype[pubtype], (total_records_with_rvk_by_pubtype[pubtype] / total_number_of_records_by_pubtype[pubtype]) * 100))
-        else:
-            print('%s\t%s\t0\t0' % (pubtype, total_number_of_records_by_pubtype[pubtype]))
+    with open('data/rvk_in_lobid_by_pubtype.tsv', 'w') as f:
+        for pubtype in total_number_of_records_by_pubtype:
+            if pubtype in total_records_with_rvk_by_pubtype:
+                f.write('%s\t%s\t%s\t%f\n' % (pubtype, total_number_of_records_by_pubtype[pubtype], total_records_with_rvk_by_pubtype[pubtype], (total_records_with_rvk_by_pubtype[pubtype] / total_number_of_records_by_pubtype[pubtype]) * 100))
+            else:
+                f.write('%s\t%s\t0\t0' % (pubtype, total_number_of_records_by_pubtype[pubtype]))
             
-    print('---')
-
     # get rvk notations for year in percent sorted by year descending
-    for year in sorted(total_number_of_records_by_year, reverse=True):
-        if year in total_records_with_rvk_by_year:
-            print('%s\t%s\t%s\t%f' % (year, total_number_of_records_by_year[year], total_records_with_rvk_by_year[year], (total_records_with_rvk_by_year[year] / total_number_of_records_by_year[year]) * 100))
-        else:
-            print('%s\t%s\t0\t0' % (year, total_number_of_records_by_year[year]))
+    with open('data/rvk_in_lobid_by_year.tsv', 'w') as f:
+        for year in sorted(total_number_of_records_by_year, reverse=True):
+            if year in total_records_with_rvk_by_year:
+                f.write('%s\t%s\t%s\t%f' % (year, total_number_of_records_by_year[year], total_records_with_rvk_by_year[year], (total_records_with_rvk_by_year[year] / total_number_of_records_by_year[year]) * 100))
+            else:
+                f.write('%s\t%s\t0\t0' % (year, total_number_of_records_by_year[year]))
