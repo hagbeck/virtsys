@@ -19,12 +19,14 @@ def analyse_rvk_in_lobid(lobid_data):
     number_of_records = 0
     number_of_records_by_year = {}
     number_of_records_by_pubtype = {}
+    number_of_records_by_medium = {}
     
     records_with_rvk = 0
     rvk_notations_for_records = 0
     
     records_with_rvk_by_year = {}
     records_with_rvk_by_pubtype = {}
+    records_with_rvk_by_medium = {}
     
     for record in lobid_data['lobid_records']['lobid_record']:
         
@@ -62,6 +64,21 @@ def analyse_rvk_in_lobid(lobid_data):
                         number_of_records_by_year[record['publication']['startDate']] += 1
                     else:
                         number_of_records_by_year[record['publication']['startDate']] = 1
+                        
+        if 'medium' in record: 
+            if isinstance(record['medium'], list):
+                for medium in record['medium']:
+                    if 'label' in medium:
+                        if medium['label'] in number_of_records_by_medium:
+                            number_of_records_by_medium[medium['label']] += 1
+                        else:
+                            number_of_records_by_medium[medium['label']] = 1
+            else:
+                if 'label' in record['medium']:
+                    if record['medium']['label'] in number_of_records_by_medium:
+                        number_of_records_by_medium[record['medium']['label']] += 1
+                    else:
+                        number_of_records_by_medium[record['medium']['label']] = 1
                             
         rvk_notations = list(set(rvk_notations))
     
@@ -89,13 +106,27 @@ def analyse_rvk_in_lobid(lobid_data):
                         else:
                             records_with_rvk_by_year[record['publication']['startDate']] = 1               
 
+            if 'medium' in record:
+                if isinstance(record['medium'], list):
+                    for medium in record['medium']:
+                        if 'label' in medium:
+                            if medium['label'] in records_with_rvk_by_medium:
+                                records_with_rvk_by_medium[medium['label']] += 1
+                            else:
+                                records_with_rvk_by_medium[medium['label']] = 1
+                else:
+                    if 'label' in record['medium']:
+                        if record['medium']['label'] in records_with_rvk_by_medium:
+                            records_with_rvk_by_medium[record['medium']['label']] += 1
+                        else:
+                            records_with_rvk_by_medium[record['medium']['label']] = 1
+                            
             records_with_rvk += 1
             rvk_notations_for_records += len(rvk_notations)
                 
     # build map with RVK classified records based on local classification
-    # build map with RVK classified records based on medium (Online-Ressource)
 
-    return number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype
+    return number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium
     
 
 if __name__ == '__main__':
@@ -114,10 +145,13 @@ if __name__ == '__main__':
     
     total_records_with_rvk_by_pubtype = {}
     total_number_of_records_by_pubtype = {}
+
+    total_number_of_records_by_medium = {}
+    total_records_with_rvk_by_medium = {}
         
     for source in sources:
         lobid_data = read_data_from_lobid_dump(data_dir + '/' + source)
-        number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype = analyse_rvk_in_lobid(lobid_data)
+        number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium = analyse_rvk_in_lobid(lobid_data)
         
         total_number_of_records += number_of_records
         total_records_with_rvk += records_with_rvk
@@ -146,6 +180,18 @@ if __name__ == '__main__':
                 total_records_with_rvk_by_pubtype[pubtype] += records_with_rvk_by_pubtype[pubtype]
             else:
                 total_records_with_rvk_by_pubtype[pubtype] = records_with_rvk_by_pubtype[pubtype]
+                
+        for medium in number_of_records_by_medium:
+            if medium in total_number_of_records_by_medium:
+                total_number_of_records_by_medium[medium] += number_of_records_by_medium[medium]
+            else:
+                total_number_of_records_by_medium[medium] = number_of_records_by_medium[medium]
+                
+        for medium in records_with_rvk_by_medium:
+            if medium in total_records_with_rvk_by_medium:
+                total_records_with_rvk_by_medium[medium] += records_with_rvk_by_medium[medium]
+            else:
+                total_records_with_rvk_by_medium[medium] = records_with_rvk_by_medium[medium]
     
     print('Number of records: %d' % total_number_of_records)
     print('Records with RVK: %d' % total_records_with_rvk)
@@ -156,6 +202,9 @@ if __name__ == '__main__':
     
     print('Records by publication type: %s' % total_number_of_records_by_pubtype)
     print('Records with RVK by publication type: %s' % total_records_with_rvk_by_pubtype)
+    
+    print('Records by medium: %s' % total_number_of_records_by_medium)
+    print('Records with RVK by medium: %s' % total_records_with_rvk_by_medium)
 
     print('---')
     
@@ -163,25 +212,27 @@ if __name__ == '__main__':
         f.write('Number of records\t%d\n' % total_number_of_records)
         f.write('Records with RVK\t%d\n' % total_records_with_rvk)
         f.write('RVK notations for records\t%d\n' % total_rvk_notations_for_records)
-        
-        f.write('Records by publication year\t%s\n' % total_number_of_records_by_year)
-        f.write('Records with RVK by publication year\t%s\n' % total_records_with_rvk_by_year)
-        
-        f.write('Records by publication type\t%s\n' % total_number_of_records_by_pubtype)
-        f.write('Records with RVK by publication type\t%s\n' % total_records_with_rvk_by_pubtype)
-
+                
     # get rvk notations for pubtype in percent
     with open('data/rvk_in_lobid_by_pubtype.tsv', 'w') as f:
         for pubtype in total_number_of_records_by_pubtype:
             if pubtype in total_records_with_rvk_by_pubtype:
                 f.write('%s\t%s\t%s\t%f\n' % (pubtype, total_number_of_records_by_pubtype[pubtype], total_records_with_rvk_by_pubtype[pubtype], (total_records_with_rvk_by_pubtype[pubtype] / total_number_of_records_by_pubtype[pubtype]) * 100))
             else:
-                f.write('%s\t%s\t0\t0' % (pubtype, total_number_of_records_by_pubtype[pubtype]))
+                f.write('%s\t%s\t0\t0\n' % (pubtype, total_number_of_records_by_pubtype[pubtype]))
             
     # get rvk notations for year in percent sorted by year descending
     with open('data/rvk_in_lobid_by_year.tsv', 'w') as f:
         for year in sorted(total_number_of_records_by_year, reverse=True):
             if year in total_records_with_rvk_by_year:
-                f.write('%s\t%s\t%s\t%f' % (year, total_number_of_records_by_year[year], total_records_with_rvk_by_year[year], (total_records_with_rvk_by_year[year] / total_number_of_records_by_year[year]) * 100))
+                f.write('%s\t%s\t%s\t%f\n' % (year, total_number_of_records_by_year[year], total_records_with_rvk_by_year[year], (total_records_with_rvk_by_year[year] / total_number_of_records_by_year[year]) * 100))
             else:
-                f.write('%s\t%s\t0\t0' % (year, total_number_of_records_by_year[year]))
+                f.write('%s\t%s\t0\t0\n' % (year, total_number_of_records_by_year[year]))
+                
+    # get rvk notations for medium in percent
+    with open('data/rvk_in_lobid_by_medium.tsv', 'w') as f:
+        for medium in total_number_of_records_by_medium:
+            if medium in total_records_with_rvk_by_medium:
+                f.write('%s\t%s\t%s\t%f\n' % (medium, total_number_of_records_by_medium[medium], total_records_with_rvk_by_medium[medium], (total_records_with_rvk_by_medium[medium] / total_number_of_records_by_medium[medium]) * 100))
+            else:
+                f.write('%s\t%s\t0\t0\n' % (medium, total_number_of_records_by_medium[medium]))
