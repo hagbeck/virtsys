@@ -124,7 +124,7 @@ def analyse_rvk_in_lobid(lobid_data):
             records_with_rvk += 1
             rvk_notations_for_records += len(rvk_notations)
                 
-    # build map with RVK classified records based on local classification
+    # TODO build map with RVK classified records based on local classification
 
     return number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium
     
@@ -215,6 +215,7 @@ if __name__ == '__main__':
                 
     # get rvk notations for pubtype in percent
     with open('data/rvk_in_lobid_by_pubtype.tsv', 'w') as f:
+        f.write('Publication Type\tNumber of Records\tNumber of Records with RVK\tPercent\n')
         for pubtype in total_number_of_records_by_pubtype:
             if pubtype in total_records_with_rvk_by_pubtype:
                 f.write('%s\t%s\t%s\t%f\n' % (pubtype, total_number_of_records_by_pubtype[pubtype], total_records_with_rvk_by_pubtype[pubtype], (total_records_with_rvk_by_pubtype[pubtype] / total_number_of_records_by_pubtype[pubtype]) * 100))
@@ -223,6 +224,7 @@ if __name__ == '__main__':
             
     # get rvk notations for year in percent sorted by year descending
     with open('data/rvk_in_lobid_by_year.tsv', 'w') as f:
+        f.write('Publication Year\tNumber of Records\tNumber of Records with RVK\tPercent\n')
         for year in sorted(total_number_of_records_by_year, reverse=True):
             if year in total_records_with_rvk_by_year:
                 f.write('%s\t%s\t%s\t%f\n' % (year, total_number_of_records_by_year[year], total_records_with_rvk_by_year[year], (total_records_with_rvk_by_year[year] / total_number_of_records_by_year[year]) * 100))
@@ -231,6 +233,7 @@ if __name__ == '__main__':
                 
     # get rvk notations for medium in percent
     with open('data/rvk_in_lobid_by_medium.tsv', 'w') as f:
+        f.write('Medium\tNumber of Records\tNumber of Records with RVK\tPercent\n')
         for medium in total_number_of_records_by_medium:
             if medium in total_records_with_rvk_by_medium:
                 f.write('%s\t%s\t%s\t%f\n' % (medium, total_number_of_records_by_medium[medium], total_records_with_rvk_by_medium[medium], (total_records_with_rvk_by_medium[medium] / total_number_of_records_by_medium[medium]) * 100))
