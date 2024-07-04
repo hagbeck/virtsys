@@ -13,6 +13,195 @@ def read_data_from_lobid_dump(source):
         
     return lobid_data
 
+def analyse_rvk_in_lobid_by_year(record, rvk_notations, number_of_records_by_year, records_with_rvk_by_year):
+        
+    if 'publication' in record:
+        if isinstance(record['publication'], list):
+            for publication in record['publication']:
+                if 'startDate' in publication:
+                    if publication['startDate'] in number_of_records_by_year:
+                        number_of_records_by_year[publication['startDate']] += 1
+                    else:
+                        number_of_records_by_year[publication['startDate']] = 1
+        else:
+            if 'startDate' in record['publication']:
+                if record['publication']['startDate'] in number_of_records_by_year:
+                    number_of_records_by_year[record['publication']['startDate']] += 1
+                else:
+                    number_of_records_by_year[record['publication']['startDate']] = 1
+                    
+    if len(rvk_notations) > 0 and 'publication' in record:
+        if isinstance(record['publication'], list):
+            for publication in record['publication']:
+                if 'startDate' in publication:
+                    if publication['startDate'] in records_with_rvk_by_year:
+                        records_with_rvk_by_year[publication['startDate']] += 1
+                    else:
+                        records_with_rvk_by_year[publication['startDate']] = 1
+        else:
+            if 'startDate' in record['publication']:
+                if record['publication']['startDate'] in records_with_rvk_by_year:
+                    records_with_rvk_by_year[record['publication']['startDate']] += 1
+                else:
+                    records_with_rvk_by_year[record['publication']['startDate']] = 1
+
+
+def analyse_rvk_in_lobid_by_pubtype(record, rvk_notations, number_of_records_by_pubtype, records_with_rvk_by_pubtype):
+
+    for pubtype in record['type']:                
+        if pubtype != 'BibliographicResource':
+            if pubtype in number_of_records_by_pubtype:
+                number_of_records_by_pubtype[pubtype] += 1
+            else:
+                number_of_records_by_pubtype[pubtype] = 1       
+                
+    if len(rvk_notations) > 0:
+        
+        for pubtype in record['type']:                
+            if pubtype != 'BibliographicResource':
+                if pubtype in records_with_rvk_by_pubtype:
+                    records_with_rvk_by_pubtype[pubtype] += 1
+                else:
+                    records_with_rvk_by_pubtype[pubtype] = 1 
+                         
+
+def analyse_rvk_in_lobid_by_medium(record, rvk_notations, number_of_records_by_medium, records_with_rvk_by_medium):
+    
+    if 'medium' in record:
+        if isinstance(record['medium'], list):
+            for medium in record['medium']:
+                if 'label' in medium:
+                    if medium['label'] in number_of_records_by_medium:
+                        number_of_records_by_medium[medium['label']] += 1
+                    else:
+                        number_of_records_by_medium[medium['label']] = 1
+        else:
+            if 'label' in record['medium']:
+                if record['medium']['label'] in number_of_records_by_medium:
+                    number_of_records_by_medium[record['medium']['label']] += 1
+                else:
+                    number_of_records_by_medium[record['medium']['label']] = 1
+        
+    if len(rvk_notations) > 0 and 'medium' in record:
+        if isinstance(record['medium'], list):
+            for medium in record['medium']:
+                if 'label' in medium:
+                    if medium['label'] in records_with_rvk_by_medium:
+                        records_with_rvk_by_medium[medium['label']] += 1
+                    else:
+                        records_with_rvk_by_medium[medium['label']] = 1
+        else:
+            if 'label' in record['medium']:
+                if record['medium']['label'] in records_with_rvk_by_medium:
+                    records_with_rvk_by_medium[record['medium']['label']] += 1
+                else:
+                    records_with_rvk_by_medium[record['medium']['label']] = 1
+
+                    
+def analyse_rvk_in_lobid_by_shelfmark(record, rvk_notations, number_of_records_by_shelfmark, records_with_rvk_by_shelfmark):
+        
+    if 'hasItem' in record:
+        if isinstance(record['hasItem'], list):
+            for item in record['hasItem']:
+                if 'type' in item and 'Item' in item['type'] and item['heldBy']['isil'] == 'DE-290' and 'callNumber' in item:
+                    if item['currentLibrary'] not in number_of_records_by_shelfmark:
+                        number_of_records_by_shelfmark[item['currentLibrary']] = {}
+                    if item['currentLibrary'] == 'SFS':
+                        shelfmark = item['callNumber'].split('/')[0]
+                        if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
+                            number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                        else:
+                            number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                    else:
+                        if item['currentLibrary'] not in number_of_records_by_shelfmark:
+                            number_of_records_by_shelfmark[item['currentLibrary']] = {}
+                        if item['currentLocation'] == 'LB':
+                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:1])
+                            if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                        else:
+                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0]
+                            if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+        else:
+            if 'type' in record['hasItem'] and 'Item' in record['hasItem']['type'] and record['hasItem']['heldBy']['isil'] == 'DE-290' and 'callNumber' in record['hasItem']:
+                if record['hasItem']['currentLibrary'] not in number_of_records_by_shelfmark:
+                    number_of_records_by_shelfmark[record['hasItem']['currentLibrary']] = {}
+                if record['hasItem']['currentLibrary'] == 'SFS':
+                    shelfmark = record['hasItem']['callNumber'].split('/')[0]
+                    if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
+                        number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                    else:
+                        number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                else:
+                    if record['hasItem']['currentLocation'] == 'LB':
+                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:1])
+                        if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                    else:
+                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0]
+                        if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1                       
+
+    if len(rvk_notations) > 0 and 'hasItem' in record:
+        if isinstance(record['hasItem'], list):
+            for item in record['hasItem']:
+                if 'type' in item and 'Item' in item['type'] and item['heldBy']['isil'] == 'DE-290' and 'callNumber' in item:
+                    if item['currentLibrary'] not in records_with_rvk_by_shelfmark:
+                        records_with_rvk_by_shelfmark[item['currentLibrary']] = {}
+                    if item['currentLibrary'] == 'SFS':
+                        shelfmark = item['callNumber'].split('/')[0]
+                        if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
+                            records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                        else:
+                            records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                    else:
+                        if item['currentLibrary'] not in records_with_rvk_by_shelfmark:
+                            records_with_rvk_by_shelfmark[item['currentLibrary']] = {}
+                        if item['currentLocation'] == 'LB':
+                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:1])
+                            if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                        else:
+                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0]
+                            if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+        else:
+            if 'type' in record['hasItem'] and 'Item' in record['hasItem']['type'] and record['hasItem']['heldBy']['isil'] == 'DE-290' and 'callNumber' in record['hasItem']:
+                if record['hasItem']['currentLibrary'] not in records_with_rvk_by_shelfmark:
+                    records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']] = {}
+                if record['hasItem']['currentLibrary'] == 'SFS':
+                    shelfmark = record['hasItem']['callNumber'].split('/')[0]
+                    if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
+                        records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                    else:
+                        records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                else:
+                    if record['hasItem']['currentLocation'] == 'LB':
+                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:1])
+                        if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                    else:
+                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0]
+                        if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1   
+
 
 def analyse_rvk_in_lobid(lobid_data):
     
@@ -20,6 +209,7 @@ def analyse_rvk_in_lobid(lobid_data):
     number_of_records_by_year = {}
     number_of_records_by_pubtype = {}
     number_of_records_by_medium = {}
+    number_of_records_by_shelfmark = {}
     
     records_with_rvk = 0
     rvk_notations_for_records = 0
@@ -27,20 +217,14 @@ def analyse_rvk_in_lobid(lobid_data):
     records_with_rvk_by_year = {}
     records_with_rvk_by_pubtype = {}
     records_with_rvk_by_medium = {}
+    records_with_rvk_by_shelfmark = {}
     
     for record in lobid_data['lobid_records']['lobid_record']:
         
         number_of_records += 1
         
         rvk_notations = []
-                  
-        for pubtype in record['type']:                
-            if pubtype != 'BibliographicResource':
-                if pubtype in number_of_records_by_pubtype:
-                    number_of_records_by_pubtype[pubtype] += 1
-                else:
-                    number_of_records_by_pubtype[pubtype] = 1                
-                        
+
         if 'subject' in record:
             if isinstance(record['subject'], list):
                 for subject in record['subject']:
@@ -50,83 +234,21 @@ def analyse_rvk_in_lobid(lobid_data):
                 if 'source' in record['subject'] and 'notation' in record['subject'] and 'RVK' in record['subject']['source']['label']:
                     rvk_notations.append(record['subject']['notation'])
         
-        if 'publication' in record:
-            if isinstance(record['publication'], list):
-                for publication in record['publication']:
-                    if 'startDate' in publication:
-                        if publication['startDate'] in number_of_records_by_year:
-                            number_of_records_by_year[publication['startDate']] += 1
-                        else:
-                            number_of_records_by_year[publication['startDate']] = 1
-            else:
-                if 'startDate' in record['publication']:
-                    if record['publication']['startDate'] in number_of_records_by_year:
-                        number_of_records_by_year[record['publication']['startDate']] += 1
-                    else:
-                        number_of_records_by_year[record['publication']['startDate']] = 1
-                        
-        if 'medium' in record: 
-            if isinstance(record['medium'], list):
-                for medium in record['medium']:
-                    if 'label' in medium:
-                        if medium['label'] in number_of_records_by_medium:
-                            number_of_records_by_medium[medium['label']] += 1
-                        else:
-                            number_of_records_by_medium[medium['label']] = 1
-            else:
-                if 'label' in record['medium']:
-                    if record['medium']['label'] in number_of_records_by_medium:
-                        number_of_records_by_medium[record['medium']['label']] += 1
-                    else:
-                        number_of_records_by_medium[record['medium']['label']] = 1
-                            
         rvk_notations = list(set(rvk_notations))
-    
-        if len(rvk_notations) > 0:
-            
-            for pubtype in record['type']:                
-                if pubtype != 'BibliographicResource':
-                    if pubtype in records_with_rvk_by_pubtype:
-                        records_with_rvk_by_pubtype[pubtype] += 1
-                    else:
-                        records_with_rvk_by_pubtype[pubtype] = 1 
-                        
-            if 'publication' in record:
-                if isinstance(record['publication'], list):
-                    for publication in record['publication']:
-                        if 'startDate' in publication:
-                            if publication['startDate'] in records_with_rvk_by_year:
-                                records_with_rvk_by_year[publication['startDate']] += 1
-                            else:
-                                records_with_rvk_by_year[publication['startDate']] = 1
-                else:
-                    if 'startDate' in record['publication']:
-                        if record['publication']['startDate'] in records_with_rvk_by_year:
-                            records_with_rvk_by_year[record['publication']['startDate']] += 1
-                        else:
-                            records_with_rvk_by_year[record['publication']['startDate']] = 1               
-
-            if 'medium' in record:
-                if isinstance(record['medium'], list):
-                    for medium in record['medium']:
-                        if 'label' in medium:
-                            if medium['label'] in records_with_rvk_by_medium:
-                                records_with_rvk_by_medium[medium['label']] += 1
-                            else:
-                                records_with_rvk_by_medium[medium['label']] = 1
-                else:
-                    if 'label' in record['medium']:
-                        if record['medium']['label'] in records_with_rvk_by_medium:
-                            records_with_rvk_by_medium[record['medium']['label']] += 1
-                        else:
-                            records_with_rvk_by_medium[record['medium']['label']] = 1
+                  
+        analyse_rvk_in_lobid_by_year(record, rvk_notations, number_of_records_by_year, records_with_rvk_by_year)
+        analyse_rvk_in_lobid_by_pubtype(record, rvk_notations, number_of_records_by_pubtype, records_with_rvk_by_pubtype)
+        analyse_rvk_in_lobid_by_medium(record, rvk_notations, number_of_records_by_medium, records_with_rvk_by_medium)
+        analyse_rvk_in_lobid_by_shelfmark(record, rvk_notations, number_of_records_by_shelfmark, records_with_rvk_by_shelfmark)
                             
+        if len(rvk_notations) > 0:
+                                        
             records_with_rvk += 1
             rvk_notations_for_records += len(rvk_notations)
                 
     # TODO build map with RVK classified records based on local classification
 
-    return number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium
+    return number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium, number_of_records_by_shelfmark, records_with_rvk_by_shelfmark
     
 
 if __name__ == '__main__':
@@ -148,10 +270,13 @@ if __name__ == '__main__':
 
     total_number_of_records_by_medium = {}
     total_records_with_rvk_by_medium = {}
+    
+    total_number_of_records_by_shelfmark = {}
+    total_records_with_rvk_by_shelfmark = {}
         
     for source in sources:
         lobid_data = read_data_from_lobid_dump(data_dir + '/' + source)
-        number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium = analyse_rvk_in_lobid(lobid_data)
+        number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium, number_of_records_by_shelfmark, records_with_rvk_by_shelfmark = analyse_rvk_in_lobid(lobid_data)
         
         total_number_of_records += number_of_records
         total_records_with_rvk += records_with_rvk
@@ -192,6 +317,24 @@ if __name__ == '__main__':
                 total_records_with_rvk_by_medium[medium] += records_with_rvk_by_medium[medium]
             else:
                 total_records_with_rvk_by_medium[medium] = records_with_rvk_by_medium[medium]
+                
+        for library in number_of_records_by_shelfmark:
+            for shelfmark in number_of_records_by_shelfmark[library]:
+                if library not in total_number_of_records_by_shelfmark:
+                    total_number_of_records_by_shelfmark[library] = {}
+                if shelfmark in total_number_of_records_by_shelfmark[library]:
+                    total_number_of_records_by_shelfmark[library][shelfmark] += number_of_records_by_shelfmark[library][shelfmark]
+                else:
+                    total_number_of_records_by_shelfmark[library][shelfmark] = number_of_records_by_shelfmark[library][shelfmark]
+
+        for library in records_with_rvk_by_shelfmark:
+            for shelfmark in records_with_rvk_by_shelfmark[library]:
+                if library not in total_records_with_rvk_by_shelfmark:
+                    total_records_with_rvk_by_shelfmark[library] = {}
+                if shelfmark in total_records_with_rvk_by_shelfmark[library]:
+                    total_records_with_rvk_by_shelfmark[library][shelfmark] += records_with_rvk_by_shelfmark[library][shelfmark]
+                else:
+                    total_records_with_rvk_by_shelfmark[library][shelfmark] = records_with_rvk_by_shelfmark[library][shelfmark]                
     
     print('Number of records: %d' % total_number_of_records)
     print('Records with RVK: %d' % total_records_with_rvk)
@@ -205,6 +348,9 @@ if __name__ == '__main__':
     
     print('Records by medium: %s' % total_number_of_records_by_medium)
     print('Records with RVK by medium: %s' % total_records_with_rvk_by_medium)
+    
+    print('Records by shelfmark: %s' % total_number_of_records_by_shelfmark)
+    print('Records with RVK by shelfmark: %s' % total_records_with_rvk_by_shelfmark)
 
     print('---')
     
@@ -239,3 +385,16 @@ if __name__ == '__main__':
                 f.write('%s\t%s\t%s\t%f\n' % (medium, total_number_of_records_by_medium[medium], total_records_with_rvk_by_medium[medium], (total_records_with_rvk_by_medium[medium] / total_number_of_records_by_medium[medium]) * 100))
             else:
                 f.write('%s\t%s\t0\t0\n' % (medium, total_number_of_records_by_medium[medium]))
+                
+    # get rvk notations for shelfmark in percent
+    for library in total_number_of_records_by_shelfmark:
+        with open('data/rvk_in_lobid_by_shelfmark_for_%s.tsv' % library.lower(), 'w') as f:
+            f.write('Shelfmark\tNumber of Records\tNumber of Records with RVK\tPercent\n')
+            for shelfmark in total_number_of_records_by_shelfmark[library]:
+                if library not in total_records_with_rvk_by_shelfmark:
+                    f.write('%s\t%s\t0\t0\n' % (shelfmark, total_number_of_records_by_shelfmark[library][shelfmark]))
+                else:
+                    if shelfmark in total_records_with_rvk_by_shelfmark[library]:
+                        f.write('%s\t%s\t%s\t%f\n' % (shelfmark, total_number_of_records_by_shelfmark[library][shelfmark], total_records_with_rvk_by_shelfmark[library][shelfmark], (total_records_with_rvk_by_shelfmark[library][shelfmark] / total_number_of_records_by_shelfmark[library][shelfmark]) * 100))
+                    else:
+                        f.write('%s\t%s\t0\t0\n' % (shelfmark, total_number_of_records_by_shelfmark[library][shelfmark]))
