@@ -112,17 +112,38 @@ def analyse_rvk_in_lobid_by_shelfmark(record, rvk_notations, number_of_records_b
                             number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
                         else:
                             number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                    elif item['currentLibrary'] == 'SM':
+                        if item['currentLocation'] == 'FOME-ZS':
+                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:2])
+                            if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                        elif item['currentLocation'] == 'FOME':
+                            if 'FOME' not in number_of_records_by_shelfmark:
+                                number_of_records_by_shelfmark['FOME'] = {}
+                            shelfmark = item['callNumber'].split('/')[0].split('-')[0]
+                            if shelfmark in number_of_records_by_shelfmark['FOME']:
+                                number_of_records_by_shelfmark['FOME'][shelfmark] += 1
+                            else:
+                                number_of_records_by_shelfmark['FOME'][shelfmark] = 1
+                        else:
+                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0]
+                            if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
                     else:
                         if item['currentLibrary'] not in number_of_records_by_shelfmark:
                             number_of_records_by_shelfmark[item['currentLibrary']] = {}
                         if item['currentLocation'] == 'LB':
-                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:1])
+                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:2])
                             if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
                                 number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
                             else:
                                 number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] = 1
                         else:
-                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0]
+                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0].split('/')[0].split('<')[0]
                             if shelfmark in number_of_records_by_shelfmark[item['currentLibrary']]:
                                 number_of_records_by_shelfmark[item['currentLibrary']][shelfmark] += 1
                             else:
@@ -137,15 +158,36 @@ def analyse_rvk_in_lobid_by_shelfmark(record, rvk_notations, number_of_records_b
                         number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
                     else:
                         number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                elif record['hasItem']['currentLibrary'] == 'SM':
+                    if record['hasItem']['currentLocation'] == 'FOME-ZS':
+                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:2])
+                        if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                    elif record['hasItem']['currentLocation'] == 'FOME':
+                        if 'FOME' not in number_of_records_by_shelfmark:
+                            number_of_records_by_shelfmark['FOME'] = {}
+                        shelfmark = record['hasItem']['callNumber'].split('/')[0].split('-')[0]
+                        if shelfmark in number_of_records_by_shelfmark['FOME']:
+                            number_of_records_by_shelfmark['FOME'][shelfmark] += 1
+                        else:
+                            number_of_records_by_shelfmark['FOME'][shelfmark] = 1
+                    else:
+                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0]
+                        if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
                 else:
                     if record['hasItem']['currentLocation'] == 'LB':
-                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:1])
+                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:2])
                         if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
                             number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
                         else:
                             number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
                     else:
-                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0]
+                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0].split('/')[0].split('<')[0]
                         if shelfmark in number_of_records_by_shelfmark[record['hasItem']['currentLibrary']]:
                             number_of_records_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
                         else:
@@ -163,17 +205,38 @@ def analyse_rvk_in_lobid_by_shelfmark(record, rvk_notations, number_of_records_b
                             records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
                         else:
                             records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                    elif item['currentLibrary'] == 'SM':
+                        if item['currentLocation'] == 'FOME-ZS':
+                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:2])
+                            if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
+                        elif item['currentLocation'] == 'FOME':
+                            if 'FOME' not in records_with_rvk_by_shelfmark:
+                                records_with_rvk_by_shelfmark['FOME'] = {}
+                            shelfmark = item['callNumber'].split('/')[0].split('-')[0]
+                            if shelfmark in records_with_rvk_by_shelfmark['FOME']:
+                                records_with_rvk_by_shelfmark['FOME'][shelfmark] += 1
+                            else:
+                                records_with_rvk_by_shelfmark['FOME'][shelfmark] = 1
+                        else:
+                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0]
+                            if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
+                            else:
+                                records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
                     else:
                         if item['currentLibrary'] not in records_with_rvk_by_shelfmark:
                             records_with_rvk_by_shelfmark[item['currentLibrary']] = {}
                         if item['currentLocation'] == 'LB':
-                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:1])
+                            shelfmark = ' '.join(item['callNumber'].split(' ')[0:2])
                             if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
                                 records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
                             else:
                                 records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] = 1
                         else:
-                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0]
+                            shelfmark = item['callNumber'].split(' ')[0].split('-')[0].split('/')[0].split('<')[0]
                             if shelfmark in records_with_rvk_by_shelfmark[item['currentLibrary']]:
                                 records_with_rvk_by_shelfmark[item['currentLibrary']][shelfmark] += 1
                             else:
@@ -188,15 +251,36 @@ def analyse_rvk_in_lobid_by_shelfmark(record, rvk_notations, number_of_records_b
                         records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
                     else:
                         records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                elif record['hasItem']['currentLibrary'] == 'SM':
+                    if record['hasItem']['currentLocation'] == 'FOME-ZS':
+                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:2])
+                        if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
+                    elif record['hasItem']['currentLocation'] == 'FOME':
+                        if 'FOME' not in records_with_rvk_by_shelfmark:
+                            records_with_rvk_by_shelfmark['FOME'] = {}
+                        shelfmark = record['hasItem']['callNumber'].split('/')[0].split('-')[0]
+                        if shelfmark in records_with_rvk_by_shelfmark['FOME']:
+                            records_with_rvk_by_shelfmark['FOME'][shelfmark] += 1
+                        else:
+                            records_with_rvk_by_shelfmark['FOME'][shelfmark] = 1
+                    else:
+                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0]
+                        if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
+                        else:
+                            records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
                 else:
                     if record['hasItem']['currentLocation'] == 'LB':
-                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:1])
+                        shelfmark = ' '.join(record['hasItem']['callNumber'].split(' ')[0:2])
                         if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
                             records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
                         else:
                             records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] = 1
                     else:
-                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0]
+                        shelfmark = record['hasItem']['callNumber'].split(' ')[0].split('-')[0].split('/')[0].split('<')[0]
                         if shelfmark in records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']]:
                             records_with_rvk_by_shelfmark[record['hasItem']['currentLibrary']][shelfmark] += 1
                         else:
@@ -246,15 +330,11 @@ def analyse_rvk_in_lobid(lobid_data):
             records_with_rvk += 1
             rvk_notations_for_records += len(rvk_notations)
                 
-    # TODO build map with RVK classified records based on local classification
-
     return number_of_records, records_with_rvk, rvk_notations_for_records, number_of_records_by_year, records_with_rvk_by_year, number_of_records_by_pubtype, records_with_rvk_by_pubtype, number_of_records_by_medium, records_with_rvk_by_medium, number_of_records_by_shelfmark, records_with_rvk_by_shelfmark
     
 
-if __name__ == '__main__':
+def process_data(data_dir):
     
-    data_dir = 'data/lobid'
-    # list of files in data directory
     sources = [f for f in listdir(data_dir) if isfile(join(data_dir, f))]
     print(sources)
     
@@ -339,20 +419,11 @@ if __name__ == '__main__':
     print('Number of records: %d' % total_number_of_records)
     print('Records with RVK: %d' % total_records_with_rvk)
     print('RVK notations for records: %d' % total_rvk_notations_for_records)
-    
-    print('Records by publication year: %s' % total_number_of_records_by_year)
-    print('Records with RVK by publication year: %s' % total_records_with_rvk_by_year)
-    
-    print('Records by publication type: %s' % total_number_of_records_by_pubtype)
-    print('Records with RVK by publication type: %s' % total_records_with_rvk_by_pubtype)
-    
-    print('Records by medium: %s' % total_number_of_records_by_medium)
-    print('Records with RVK by medium: %s' % total_records_with_rvk_by_medium)
-    
-    print('Records by shelfmark: %s' % total_number_of_records_by_shelfmark)
-    print('Records with RVK by shelfmark: %s' % total_records_with_rvk_by_shelfmark)
+        
+    write_data_to_file(total_number_of_records, total_records_with_rvk, total_rvk_notations_for_records, total_number_of_records_by_year, total_records_with_rvk_by_year, total_number_of_records_by_pubtype, total_records_with_rvk_by_pubtype, total_number_of_records_by_medium, total_records_with_rvk_by_medium, total_number_of_records_by_shelfmark, total_records_with_rvk_by_shelfmark)
 
-    print('---')
+    
+def write_data_to_file(total_number_of_records, total_records_with_rvk, total_rvk_notations_for_records, total_number_of_records_by_year, total_records_with_rvk_by_year, total_number_of_records_by_pubtype, total_records_with_rvk_by_pubtype, total_number_of_records_by_medium, total_records_with_rvk_by_medium, total_number_of_records_by_shelfmark, total_records_with_rvk_by_shelfmark):
     
     with open('data/rvk_in_lobid.tsv', 'w') as f:
         f.write('Number of records\t%d\n' % total_number_of_records)
@@ -398,3 +469,8 @@ if __name__ == '__main__':
                         f.write('%s\t%s\t%s\t%f\n' % (shelfmark, total_number_of_records_by_shelfmark[library][shelfmark], total_records_with_rvk_by_shelfmark[library][shelfmark], (total_records_with_rvk_by_shelfmark[library][shelfmark] / total_number_of_records_by_shelfmark[library][shelfmark]) * 100))
                     else:
                         f.write('%s\t%s\t0\t0\n' % (shelfmark, total_number_of_records_by_shelfmark[library][shelfmark]))
+
+
+if __name__ == '__main__':
+        
+    process_data(data_dir='data/lobid')
