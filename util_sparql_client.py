@@ -24,10 +24,10 @@ from SPARQLWrapper import SPARQLWrapper, JSON
 SPARQL_ENDPOINT = 'http://localhost:7200/repositories/VirtuelleSystematik'
 
 
-def sparql_query(query=None):
+def sparql_query(query=None, endpoint=SPARQL_ENDPOINT):
 
     if query:
-        sparql = SPARQLWrapper(SPARQL_ENDPOINT)
+        sparql = SPARQLWrapper(endpoint)
         sparql.setQuery(query)
 
         sparql.setReturnFormat(JSON)
