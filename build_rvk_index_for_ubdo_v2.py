@@ -1,3 +1,4 @@
+import concurrent.futures
 import json
 from os import listdir
 from os.path import isfile, join
@@ -124,6 +125,54 @@ def start_solrbulk(data_dir='', mode='update'):
     return message
 
 
+def get_data(source=''):
+
+    lobid_data = read_data_from_lobid_dump(source)
+    
+    number_of_records = 0
+    number_of_records_with_rvk = 0
+    number_of_rvk_notations = 0
+
+    with open(config.SOLR_DATA % str(uuid.uuid4()), 'w') as thedata:
+
+        for record in lobid_data['lobid_records']['lobid_record']:
+        
+            number_of_records += 1
+
+            solr_record = {
+                'id': record['almaMmsId']
+            }
+        
+            rvk_notations = []
+            if 'subject' in record:
+                if isinstance(record['subject'], list):
+                    for subject in record['subject']:
+                        if 'source' in subject and 'notation' in subject and 'RVK' in subject['source']['label']:
+                            rvk_notations.append(subject['notation'])
+                else:
+                    if 'source' in record['subject'] and 'notation' in record['subject'] and 'RVK' in record['subject']['source']['label']:
+                        rvk_notations.append(record['subject']['notation'])
+            
+            rvk_notations = list(set(rvk_notations))
+
+            if rvk_notations:
+                number_of_records_with_rvk += 1
+                solr_record['rvk_notations'] = []
+
+                for item in rvk_notations:
+                    normalized_item = __normalize_rvk_data(item)
+                    if normalized_item not in solr_record['rvk_notations']:
+                        solr_record['rvk_notations'].append(normalized_item)
+                        number_of_rvk_notations += 1
+                        
+            get_rvk_notations_from_branch(solr_record=solr_record)
+            
+            thedata.write(json.dumps(solr_record))
+            thedata.write('\n')
+            
+    return number_of_records, number_of_records_with_rvk, number_of_rvk_notations
+
+
 def process_rvk_data():
 
     # neuer Ansatz, da der vorige zu lange dauert und wir, wegen des künftig monatlichen Updates der CG-Daten in lobid-resources, 
@@ -134,55 +183,27 @@ def process_rvk_data():
     
     data_dir='data/lobid'
 
-    sources = [f for f in listdir(data_dir) if isfile(join(data_dir, f))]
+    sources = [join(data_dir, f) for f in listdir(data_dir) if isfile(join(data_dir, f))]
     print(sources)
-    
-    number_of_records = 0
-    number_of_records_with_rvk = 0
-    number_of_rvk_notations = 0
-    
-    for source in sources:
         
-        lobid_data = read_data_from_lobid_dump(join(data_dir, source))
-        
-        with open(config.SOLR_DATA % str(uuid.uuid4()), 'w') as thedata:
+    total_number_of_records = 0
+    total_number_of_records_with_rvk = 0
+    total_number_of_rvk_notations = 0
+    message = ''
+    
+    with concurrent.futures.ProcessPoolExecutor(max_workers=4) as executor:
 
-            for record in lobid_data['lobid_records']['lobid_record']:
-            
-                number_of_records += 1
+        for number_of_records, number_of_records_with_rvk, number_of_rvk_notations in executor.map(get_data, sources):
 
-                solr_record = {
-                    'id': record['almaMmsId']
-                }
-            
-                rvk_notations = []
-                if 'subject' in record:
-                    if isinstance(record['subject'], list):
-                        for subject in record['subject']:
-                            if 'source' in subject and 'notation' in subject and 'RVK' in subject['source']['label']:
-                                rvk_notations.append(subject['notation'])
-                    else:
-                        if 'source' in record['subject'] and 'notation' in record['subject'] and 'RVK' in record['subject']['source']['label']:
-                            rvk_notations.append(record['subject']['notation'])
+            total_number_of_records += number_of_records
+            total_number_of_records_with_rvk += number_of_records_with_rvk
+            total_number_of_rvk_notations += number_of_rvk_notations
+
+    message += 'ubdo_rvk_index.json ready.\n\n'
+    message += '%s/%s records with RVK notations.\n' % (total_number_of_records_with_rvk, total_number_of_records)
+    message += '%s notations.\n\n' % total_number_of_rvk_notations
                 
-                rvk_notations = list(set(rvk_notations))
-
-                if rvk_notations:
-                    number_of_records_with_rvk += 1
-                    solr_record['rvk_notations'] = []
-
-                    for item in rvk_notations:
-                        normalized_item = __normalize_rvk_data(item)
-                        if normalized_item not in solr_record['rvk_notations']:
-                            solr_record['rvk_notations'].append(normalized_item)
-                            number_of_rvk_notations += 1
-                            
-                get_rvk_notations_from_branch(solr_record=solr_record)
-                
-                thedata.write(json.dumps(solr_record))
-                thedata.write('\n')
-                
-    return number_of_records, number_of_records_with_rvk, number_of_rvk_notations
+    return message
 
 
 if __name__ == '__main__':
@@ -194,12 +215,8 @@ if __name__ == '__main__':
         # build data
         start = timeit.default_timer()
 
-        number_of_records, number_of_records_with_rvk, number_of_rvk_notations = process_rvk_data()
+        message = process_rvk_data()
         
-        message = 'number of records: %s\n' % number_of_records
-        message += 'number of records with RVK: %s\n' % number_of_records_with_rvk
-        message += 'number of RVK notations: %s\n\n' % number_of_rvk_notations
-
         stop = timeit.default_timer()
         duration = stop - start
         message += 'duration building RVK index data: %s\n' % duration # duration 9.846s -> ca. 2,7h
@@ -215,6 +232,7 @@ if __name__ == '__main__':
         report_status = 'successful'
         
     except Exception as e:
+        print(e)
         report_status = 'failed'
         message = e
         
