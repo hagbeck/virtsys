@@ -114,11 +114,9 @@ def start_solrbulk(data_dir='', mode='update'):
         # start solrbulk: https://github.com/miku/solrbulk
         # solrbulk -verbose -server https://localhost:7007/solr/biblio solr_add_data.json
         if mode != 'update' and idx == 1:
-            message += subprocess.run(["/usr/sbin/solrbulk", "-purge", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE)
+            message += subprocess.run(["/usr/sbin/solrbulk", "-purge", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE).stdout.decode('utf-8')
         else:
-            message += subprocess.run(["/usr/sbin/solrbulk", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE)
-
-        message += '\n'
+            message += subprocess.run(["/usr/sbin/solrbulk", "-server", "%s" % config.SOLR_URL, "%s/%s" % (data_dir, file)], stdout=subprocess.PIPE).stdout.decode('utf-8')
         
         idx += 1
         
@@ -232,7 +230,6 @@ if __name__ == '__main__':
         report_status = 'successful'
         
     except Exception as e:
-        print(e)
         report_status = 'failed'
         message = e
         
