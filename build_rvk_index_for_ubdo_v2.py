@@ -179,9 +179,11 @@ def process_rvk_data():
     # read file list from daily lobid-resources dump
     # for each file, read the lobid-resources data, extract the RVK notations and get the RVK branches + build solr data 
     
-    data_dir='data/lobid'
+    data_dirs = ['data/rvk', 'data/ubdo']
 
-    sources = [join(data_dir, f) for f in listdir(data_dir) if isfile(join(data_dir, f))]
+    sources = []
+    for data_dir in data_dirs:
+        sources.extend([join(data_dir, f) for f in listdir(data_dir) if isfile(join(data_dir, f))])
     print(sources)
         
     total_number_of_records = 0
@@ -200,8 +202,8 @@ def process_rvk_data():
     message += 'ubdo_rvk_index.json ready.\n\n'
     message += '%s/%s records with RVK notations.\n' % (total_number_of_records_with_rvk, total_number_of_records)
     message += '%s notations.\n\n' % total_number_of_rvk_notations
-                
-    return message
+
+    return message              
 
 
 if __name__ == '__main__':

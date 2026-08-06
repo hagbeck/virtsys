@@ -4,8 +4,12 @@ from os.path import isfile, join
 import xmltodict
 
 
-libraries_to_ignore = ['BHA', 'HA', "SHARE", "ZB"]
+libraries_to_ignore = ['BHA', 'HA', "RES_SHARE", "ZB"]
 locations_to_ignore = ['abgegeben', 'Test', "s.", "Fach", "Medien_1", "Medien_2", "Medien_3", "Medienschr"]
+pubtypes_to_ignore = ['Periodical', 'Series', 'Newspaper']
+tmp_resources_collections = [
+  "zdb-23-dgg-eba", "zdb-605-preselect", "zdb-18-nol", "utb5", "utbsel4", "zdb-18-nomos-vdi-nrw", "zdb-8-apa", "pearson5", "zdb-7-taylorfra-eba",  "sage research methods video: research ethics and integrity", "mohrsiebeck3", "fs2", "bloomsbury2", "meiner2", "nfa2", "beck3", "jb2", "zdb-22-cwh", "zdb-149-hcb", "zdb-170-etu", "cup6", "oho1", "oup3", "hanser2", "cco3", "pl1", "brill2", "ovsi1", "sage3", "wiley5", "psychnova1", "jstor1", "taylorfrancis3"
+]
 
 
 # read data of lobid dump from EDS-ETL process
@@ -416,10 +420,10 @@ def build_data_to_analyse_from_lobid(lobid_data, shelfmark_map):
         if 'publication' in record:
             if isinstance(record['publication'], list):
                 for publication in record['publication']:
-                    if 'startDate' in publication:
+                    if 'startDate' in publication and 'type' in publication and 'SecondaryPublicationEvent' not in publication['type']:
                         years.append(publication['startDate'])
             else:
-                if 'startDate' in record['publication']:
+                if 'startDate' in record['publication'] and 'type' in record['publication'] and 'SecondaryPublicationEvent' not in record['publication']['type']:
                     years.append(record['publication']['startDate'])
         record_to_analyse['year'] = list(set(years))
 
@@ -442,16 +446,18 @@ def build_data_to_analyse_from_lobid(lobid_data, shelfmark_map):
                     
         collections = []
         if 'inCollection' in record:
-            ignorable_collections = ['https://nrw.digibib.net/search/hbzvk/', 'http://lobid.org/organisations/DE-655#!']
+            ignorable_collections = ['https://nrw.digibib.net/search/hbzvk/', 'http://lobid.org/organisations/DE-655#!', "journals", "repository.publisso.de", 'https://dbis.ur.de/']
             if isinstance(record['inCollection'], list):
                 for in_collection in record['inCollection']:
                     if 'type' in in_collection and 'Collection' in in_collection['type'] and in_collection['id'] not in ignorable_collections:
-                        collection = in_collection['id'].split('/')[-1].replace('#!', '')
-                        collections.append(collection)
+                        collection = in_collection['id'].split('/')[-1].replace('#!', '').replace("collections#", '').strip()
+                        if collection and not collection.startswith('HT'):
+                            collections.append(collection.lower())
             else:
                 if 'type' in record['inCollection'] and 'Collection' in record['inCollection']['type'] and record['inCollection']['id'] not in ignorable_collections:
-                    collection = record['inCollection']['id'].split('/')[-1].replace('#!', '')
-                    collections.append(collection)
+                    collection = record['inCollection']['id'].split('/')[-1].replace('#!', '').replace("collections#", '').strip()
+                    if collection and not collection.startswith('HT'):
+                        collections.append(collection.lower())
         record_to_analyse['collections'] = list(set(collections))
         
         libraries = []
@@ -478,55 +484,92 @@ def build_data_to_analyse_from_lobid(lobid_data, shelfmark_map):
                     if 'currentLocation' in record['hasItem']:
                         locations.append(record['hasItem']['currentLocation'])
         
-        shelfmarks = []
+        call_numbers = []
+        old_call_numbers = []
         if 'hasItem' in record:
             if isinstance(record['hasItem'], list):
                 for item in record['hasItem']:
                     if 'type' in item and 'Item' in item['type'] and item['heldBy']['isil'] == 'DE-290' and 'callNumber' in item:
                         call_number = item['callNumber']
+                        old_call_number = ''
                         if call_number in shelfmark_map.keys():
-                            call_number = shelfmark_map[call_number]
+                            old_call_number = shelfmark_map[call_number]
 
                         if item['currentLibrary'] == 'SFS':
-                            shelfmarks.append(call_number.split('/')[0])
+                            call_numbers.append(call_number.split('/')[0])
+                            if old_call_number:
+                                old_call_numbers.append(old_call_number.split('/')[0])
                         elif item['currentLibrary'] == 'SM':
                             if item['currentLocation'] == 'FOME-ZS':
-                                shelfmarks.append(' '.join(call_number.split(' ')[0:2]))
+                                call_numbers.append(' '.join(call_number.split(' ')[0:2]))
+                                if old_call_number:
+                                    old_call_numbers.append(' '.join(old_call_number.split(' ')[0:2]))
                             elif item['currentLocation'] == 'FOME':
                                 libraries.append('FOME')
-                                shelfmarks.append(call_number.split('/')[0].split('-')[0])
+                                call_numbers.append(call_number.split('/')[0].split('-')[0])
+                                if old_call_number:
+                                    old_call_numbers.append(old_call_number.split('/')[0].split('-')[0])
                             else:
-                                shelfmarks.append(call_number.split(' ')[0].split('-')[0])
+                                call_numbers.append(call_number.split(' ')[0].split('-')[0])
+                                if old_call_number:
+                                    old_call_numbers.append(old_call_number.split(' ')[0].split('-')[0])
                         else:
                             if item['currentLocation'] == 'LB':
-                                shelfmarks.append(' '.join(call_number.split(' ')[0:2]))
+                                call_numbers.append(' '.join(call_number.split(' ')[0:2]))
+                                if old_call_number:
+                                    old_call_numbers.append(' '.join(old_call_number.split(' ')[0:2]))
                             else:
-                                shelfmarks.append(call_number.split(' ')[0].split('-')[0].split('/')[0].split('<')[0])
+                                call_numbers.append(call_number.split(' ')[0].split('-')[0].split('/')[0].split('<')[0])
+                                if old_call_number:
+                                    old_call_numbers.append(old_call_number.split(' ')[0].split('-')[0].split('/')[0].split('<')[0])
             else:
                 if 'type' in record['hasItem'] and 'Item' in record['hasItem']['type'] and record['hasItem']['heldBy']['isil'] == 'DE-290' and 'callNumber' in record['hasItem']:
                     call_number = record['hasItem']['callNumber']
+                    old_call_number = ''
                     if call_number in shelfmark_map.keys():
-                        call_number = shelfmark_map[call_number]
+                        old_call_number = shelfmark_map[call_number]
                     
                     if record['hasItem']['currentLibrary'] == 'SFS':
-                        shelfmarks.append(call_number.split('/')[0])
+                        call_numbers.append(call_number.split('/')[0])
+                        if old_call_number:
+                            old_call_numbers.append(old_call_number.split('/')[0])
                     elif record['hasItem']['currentLibrary'] == 'SM':
                         if record['hasItem']['currentLocation'] == 'FOME-ZS':
-                            shelfmarks.append(' '.join(call_number.split(' ')[0:2]))
+                            call_numbers.append(' '.join(call_number.split(' ')[0:2]))
+                            if old_call_number:
+                                call_numbers.append(' '.join(call_number.split(' ')[0:2]))
                         elif record['hasItem']['currentLocation'] == 'FOME':
                             libraries.append('FOME')
-                            shelfmarks.append(call_number.split('/')[0].split('-')[0])
+                            call_numbers.append(call_number.split('/')[0].split('-')[0])
+                            if old_call_number:
+                                old_call_numbers.append(old_call_number.split('/')[0].split('-')[0])
                         else:
-                            shelfmarks.append(call_number.split(' ')[0].split('-')[0])
+                            call_numbers.append(call_number.split(' ')[0].split('-')[0])
+                            if old_call_number:
+                                old_call_numbers.append(old_call_number.split(' ')[0].split('-')[0])
                     else:
                         if record['hasItem']['currentLocation'] == 'LB':
-                            shelfmarks.append(' '.join(call_number.split(' ')[0:2]))
+                            call_numbers.append(' '.join(call_number.split(' ')[0:2]))
+                            if old_call_number:
+                                old_call_numbers.append(' '.join(old_call_number.split(' ')[0:2]))
                         else:
-                            shelfmarks.append(call_number.split(' ')[0].split('-')[0].split('/')[0].split('<')[0])
+                            call_numbers.append(call_number.split(' ')[0].split('-')[0].split('/')[0].split('<')[0])
+                            if old_call_number:
+                                old_call_numbers.append(old_call_number.split(' ')[0].split('-')[0].split('/')[0].split('<')[0])
 
-        record_to_analyse['shelfmarks'] = list(set(shelfmarks))
+        record_to_analyse['shelfmarks'] = list(set(call_numbers))
+        record_to_analyse['old_shelfmarks'] = list(set(old_call_numbers))
                     
         record_to_analyse['libraries'] = list(set(libraries))
+        
+        # set tmp_access to true if collection is in tmp_resources_collections
+        record_to_analyse['tmp_access'] = False
+        if any(collection in collections for collection in tmp_resources_collections):
+            record_to_analyse['tmp_access'] = True
+        
+        # ignore records if pubtypes contains one of the pubtypes to ignore
+        if any(pubtype in pubtypes for pubtype in pubtypes_to_ignore):
+            continue
         
         # ignore records if libraries contains one of the libraries to ignore
         if any(library in libraries for library in libraries_to_ignore):
@@ -550,7 +593,7 @@ def process_data_new(data_dir):
     # Dazu wird es in Analytics eine Liste unter /Geteilte Ordner/Technische Universitaet Dortmund 49HBZ_UBD/Reports/Printmendien/Umsignierung geben.
     # path=%2Fshared%2FTechnische Universitaet Dortmund 49HBZ_UBD%2FReports%2FPrintmedien%2FUmsignierung%2FAbbildung alte auf neue Signaturen
     # -> /home/mhagbeck/DataProjects/alma/api_sandbox/data.tsv
-    shelfmark_map = read_data_from_tsv('/home/mhagbeck/DataProjects/alma/api_sandbox/2024-10-09_data.tsv')
+    shelfmark_map = read_data_from_tsv('/home/mhagbeck/DataProjects/alma/api_sandbox/2025-02-26_data.tsv')
     print('Number of old shelfmarks in map: %d' % len(shelfmark_map))
 
     for source in sources:
